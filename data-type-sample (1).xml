@@ -1,0 +1,81 @@
+<!--
+  
+Define a data type by using the following types of XML elements (also see example below):
+	<data-type>, with string attribute 'name': Single top-level element for the data type. Provided name will appear in UI; will be overwritten by Name provided in UI if different.
+	Building-block elements:
+		<pattern>: Each pattern element includes a regular expression, defining a string pattern to be located in inspected data. To escape special characters, wrap the regular expression inside a <![CDATA[     ]]> child element.
+			The regular expression should be in in Google RE2 format (see https://re2.googlecode.com/hg/doc/syntax.html ).
+			A couple of useful regular expression features are:
+			- For case-insensitive matching, at the beginning of the Pattern content add: (?i) 
+			- To mark a word boundary (beginning or end): \b
+		<data-type-ref>, with string attribute 'id': Refers to an existing data type (predefined or custom) by its ID. IDs appear in the UI, in the list of configured data types.
+	<and>, <or> - wrapped around multiple child elements; <not> - wrapped around a single child element: Boolean logical operators defining the relationship of their child elements. 
+		For example, to match data including both of two patterns, place the two 'pattern' elements inside an 'and' element.
+	Additional determining elements:
+		<validator>, with string attribute 'type', wrapped around a single 'pattern' element: Matches data matching its child pattern element, if the matching data is validated according to the algorithm of the specified type. Valid types are: 'luhn' and 'nhs' (Modulus 11).
+		<occurrences>, with string attributes 'min' and 'isUnique', wrapped around a single child element: Matches data that includes data matching the child element at least min times. If isUnique="true", the occurrences must be different.
+		<proximity>, with string attribute 'max', wrapped around exactly two child elements: Matches data that includes data matching both of its child elements, in the order of the child elements' appearance, with no more than max characters from the end of the first to the beginning of the second.
+	-->
+
+<!--
+	Example 1: The following data type matches data that
+	- matches an existing data type with ID="42", and
+	- includes the word "Visa" or the word "Mastercard" (case sensitive), followed within 10 characters by 3 numbers structured like VISA credit card numbers and validated according to the Luhn algorithm, and
+	- does not include the word "Approved" (case insensitive):
+-->
+<data-type name="ComplexDataType">
+	<and>
+		<data-type-ref id="42">
+		<proximity max="10">
+			<or>
+				<pattern>Visa</pattern>
+				<pattern>Mastercard</pattern>
+			</or>
+			<occurrences min="3" isUnique="false">
+				<validator type="luhn">
+					<pattern>
+						<![CDATA[4\d{3} \d{4} \d{4} \d{4}]]>
+					</pattern>
+				</validator>
+			</occurrences>
+		</proximity>
+		<not>
+			<pattern>(?i)Approved</pattern>
+		</not>
+	</and>
+</data-type>
+
+<!--
+	Example 2: The following data type matches data that includes either "top secret" or "confidential", with word breaks before and after, case-insensitive:
+-->
+<data-type name="Bussines Confidential Information">
+	<or>
+		<pattern>(?i)\bconfidential\b</pattern>
+		<pattern>(?i)\bTop Secret\b</pattern>
+	</or>
+</data-type>
+
+<!--
+	Example 3: The following data type matches data that contains 5 to 10 occurrences of the word "confidential", with word breaks before and after, case-insensitive:
+-->
+<data-type name="5 Confidential">
+	<occurrences min="5" max="10" isUnique="true">
+		<pattern>(?i)\bconfidential\b</pattern>
+	</occurrences>
+</data-type>
+
+<!--
+	Example 4: The following data type attempts to identify use of the phonetic alphabet:
+-->
+<data-type name="Dictionary">
+	<or>
+		<pattern>(?i)Alpha</pattern>
+		<pattern>(?i)Bravo</pattern>
+		<pattern>(?i)Charlie</pattern>
+		<pattern>(?i)Delta</pattern>
+		<pattern>(?i)Echo</pattern>
+		<pattern>(?i)Foxtrot</pattern>
+		<pattern>(?i)Golf</pattern>
+		<pattern>(?i)Hotel</pattern>
+	</or>
+</data-type>
