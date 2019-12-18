@@ -1,0 +1,42 @@
+//Pac File Vigor
+function FindProxyForURL(url, host)
+{
+var proxy= "PROXY proxy.localdomain:8080";
+var dnsResolved = dnsResolve("proxy.localdomain");
+var inside = '10.252.110.30';
+var hostIP = dnsResolve(host);
+var clientip;
+clientip = myIpAddress();
+
+		/* Global Proxy Bypass */
+		if ( 
+		/* Don't local host and localdomain addresses */
+		shExpMatch(host,"*.localdomain") ||
+		isInNet(host, '0.0.0.0', '255.0.0.0')  ||
+		isInNet(host, '10.0.0.0', '255.0.0.0') ||
+		isInNet(host, '127.0.0.0', '255.0.0.0') ||
+		isInNet(host, '169.254.0.0', '255.255.0.0') ||
+		isInNet(host, '172.16.0.0', '255.240.0.0') ||
+		isInNet(host, '192.0.2.0', '255.255.255.0') ||
+		isInNet(host, '192.88.99.0', '255.255.255.0') ||
+		isInNet(host, '192.168.0.0', '255.255.0.0') ||
+		isInNet(host, '198.18.0.0', '255.254.0.0') ||
+		isInNet(host, '224.0.0.0', '240.0.0.0') ||
+		isInNet(host, '240.0.0.0', '240.0.0.0')
+		)
+			{
+				return 'DIRECT';
+			}
+		
+		/* Proxy Settings for when user is inside corporate */
+		if ( inside == dnsResolved  )
+		{
+		return proxy;
+		}
+		/* Proxy Settings for when user is not inside corporate */
+		if ( inside != dnsResolved  )
+		{
+		return 'DIRECT';
+		}
+		
+	}
